@@ -23,12 +23,27 @@ let serverinstaliser = async () => {
   }
 }
 serverinstaliser()
+
+const convertDbObjectToResponseObject = dbObject => {
+  return {
+    playerId: dbObject.player_id,
+    playerName: dbObject.player_name,
+    jerseyNumber: dbObject.jersey_number,
+    role: dbObject.role,
+  }
+}
 // get method
 
 app.get('/players/', async (request, response) => {
-  const playerquery = `SELECT * FROM cricket_team ORDER BY player_id`
-  const playerarray = await db.all(playerquery)
-  response.send(playerarray)
+  const getPlayersQuery = `
+ SELECT
+ *
+ FROM
+ cricket_team;`
+  const playersArray = await db.all(getPlayersQuery)
+  response.send(
+    playersArray.map(eachPlayer => convertDbObjectToResponseObject(eachPlayer)),
+  )
 })
 // post method
 
@@ -48,9 +63,8 @@ app.get('/players/:playerId/', async (request, response) => {
   const {playerId} = request.params
   const playerquery = `SELECT * FROM cricket_team WHERE player_id = ${playerId}`
   const playerresponse = await db.get(playerquery)
-  response.send(playerresponse)
+  response.send(convertDbObjectToResponseObject(playerresponse))
 })
-
 // put method
 
 app.put('/players/:playerId/', async (request, response) => {
@@ -74,3 +88,4 @@ app.delete('/players/:playerId/', async (request, response) => {
   await db.run(query)
   response.send('Player Removed')
 })
+
